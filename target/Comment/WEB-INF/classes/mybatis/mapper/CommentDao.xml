@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cj.dao.CommentDao">
+    <insert id="Add">
+        INSERT INTO comment(COMMENT_ID,COMMENT_O_ID,COMMENT_M_ID,COMMENT_STAR,COMMENT_CONTENT,COMMENT_TIME)
+        VALUES(null,#{commentOId},#{commentMId},#{commentStar},#{commentContent},#{commentTime})
+    </insert>
+
+
+    <resultMap id="commentMapping" type="com.cj.entity.Comment">
+        <id property="commentId" column="COMMENT_ID"></id>
+        <result property="commentOId" column="COMMENT_O_ID"></result>
+        <result property="commentMId" column="COMMENT_M_ID"></result>
+        <result property="commentStar" column="COMMENT_STAR"></result>
+        <result property="commentContent" column="COMMENT_CONTENT"></result>
+        <result property="commentTime" column="COMMENT_TIME"></result>
+        <association property="commentOrder" javaType="com.cj.entity.Orders">
+            <id property="orderId" column="ORDER_ID"></id>
+            <result property="orderBId" column="ORDER_B_ID"></result>
+            <result property="orderMId" column="ORDER_M_ID"></result>
+            <result property="orderNumber" column="ORDER_NUMBER"></result>
+            <result property="orderPrice" column="ORDER_PRICE"></result>
+            <result property="orderState" column="ORDER_STATE"></result>
+            <result property="orderBusiness.businessId" column="BUSINESS_ID"></result>
+            <result property="orderBusiness.businessImgName" column="BUSINESS_IMG_NAME"></result>
+            <result property="orderBusiness.businessTitle" column="BUSINESS_TITLE"></result>
+            <result property="orderBusiness.businessSubtitle" column="BUSINESS_SUBTITLE"></result>
+            <result property="orderBusiness.businessPrice" column="BUSINESS_PRICE"></result>
+            <result property="orderBusiness.businessDistance" column="BUSINESS_DISTANCE"></result>
+            <result property="orderBusiness.businessNumber" column="BUSINESS_NUMBER"></result>
+            <result property="orderBusiness.businessStar" column="BUSINESS_STAR"></result>
+            <result property="orderBusiness.businessDesc" column="BUSINESS_DESC"></result>
+        </association>
+        <association property="commentMember" javaType="com.cj.entity.Member">
+            <id property="memberId" column="MEMBER_ID"></id>
+            <result property="memberPhone" column="MEMBER_PHONE"></result>
+            <result property="memberUsername" column="MEMBER_USERNAME"></result>
+            <result property="memberPassword" column="MEMBER_PASSWORD"></result>
+        </association>
+    </resultMap>
+    <select id="QuerySingleByPage" resultMap="commentMapping">
+         SELECT * FROM comment c,business b,orders o,member m
+            WHERE o.ORDER_ID=c.COMMENT_O_ID AND o.ORDER_B_ID=b.BUSINESS_ID AND m.MEMBER_ID=c.COMMENT_M_ID
+        <if test="commentOrder.orderBusiness.businessId!=null and !''.equals(commentOrder.orderBusiness.businessId)">
+            and b.BUSINESS_ID=#{commentOrder.orderBusiness.businessId}
+        </if>
+    </select>
+
+    <resultMap id="cMapping" type="com.cj.entity.Comment">
+        <id property="commentId" column="COMMENT_ID"></id>
+        <result property="commentOId" column="COMMENT_O_ID"></result>
+        <result property="commentMId" column="COMMENT_M_ID"></result>
+        <result property="commentStar" column="COMMENT_STAR"></result>
+        <result property="commentContent" column="COMMENT_CONTENT"></result>
+        <result property="commentTime" column="COMMENT_TIME"></result>
+        <association property="commentOrder" javaType="com.cj.entity.Orders">
+            <id property="orderId" column="ORDER_ID"></id>
+            <result property="orderState" column="ORDER_STATE"></result>
+        </association>
+        <association property="commentMember" javaType="com.cj.entity.Member">
+            <result property="memberPhone" column="MEMBER_PHONE"></result>
+        </association>
+    </resultMap>
+    <select id="QueryAll" resultMap="cMapping">
+        SELECT * FROM comment
+    </select>
+
+    <select id="QueryByPage" resultMap="cMapping">
+        SELECT * FROM orders o,member m,comment c WHERE m.MEMBER_ID=o.ORDER_M_ID AND c.COMMENT_O_ID=o.ORDER_ID
+        <if test="commentContent!=null and !''.equals(commentContent.trim())">
+            AND c.COMMENT_CONTENT LIKE '%' #{commentContent} '%'
+        </if>
+    </select>
+</mapper>
+
+

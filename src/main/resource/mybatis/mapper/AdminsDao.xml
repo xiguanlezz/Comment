@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cj.dao.AdminsDao">
+    <insert id="Add">
+        INSERT INTO admins VALUES(null,#{adminUsername},#{adminPassword},#{adminNickname})
+    </insert>
+
+    <update id="Update">
+        UPDATE admins
+        <set>
+            <if test="adminPassword!=null and !''.equals(adminPassword.trim())">
+                ADMIN_PASSWORD=#{adminPassword},
+            </if>
+        </set>
+        <where>
+            ADMIN_ID=#{adminId}
+        </where>
+    </update>
+
+    <select id="Query" resultType="com.cj.entity.Admins">
+        SELECT * FROM admins
+        <where>
+            <if test="adminUsername!=null and !''.equals(adminUsername.trim())">
+                ADMIN_USERNAME=#{adminUsername}
+            </if>
+            <if test="adminPassword!=null and !''.equals(adminPassword.trim())">
+                AND ADMIN_PASSWORD=#{adminPassword}
+            </if>
+        </where>
+    </select>
+
+    <select id="QueryByUsername" resultType="com.cj.entity.Admins">
+        SELECT * FROM admins
+        <where>
+            <if test="adminUsername!=null and !''.equals(adminUsername.trim())">
+                ADMIN_USERNAME=#{adminUsername}
+            </if>
+        </where>
+    </select>
+
+    <select id="QueryPwdById" resultType="String">
+        SELECT ADMIN_PASSWORD FROM admins WHERE ADMIN_ID=#{adminId}
+    </select>
+</mapper>

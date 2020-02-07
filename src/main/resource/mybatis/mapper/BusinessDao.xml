@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cj.dao.BusinessDao">
+    <insert id="Add" useGeneratedKeys="true" keyProperty="businessId">
+        INSERT INTO business(BUSINESS_IMG_NAME,BUSINESS_TITLE,BUSINESS_SUBTITLE,BUSINESS_PRICE,BUSINESS_DISTANCE,BUSINESS_NUMBER,BUSINESS_STAR,
+        BUSINESS_DESC,BUSINESS_CITY_CODE,BUSINESS_CATE_CODE,BUSINESS_REDUNDANCY_TOTAL_SCORE,BUSINESS_REDUNDANCY_TOTAL_NUMBER)
+        VALUES(#{businessImgName},#{businessTitle},#{businessSubtitle},#{businessPrice},#{businessDistance},#{businessNumber},#{businessStar},
+        #{businessDesc},#{businessCityCode},#{businessCateCode},#{businessRedundancyTotalScore},#{businessRedundancyTotalNumber})
+    </insert>
+
+    <insert id="AddBatch" useGeneratedKeys="true" keyProperty="businessId">
+        INSERT INTO business VALUES
+        <foreach collection="list" item="b" separator=",">
+            (NULL, #{b.businessImgName}, #{b.businessTitle}, #{b.businessSubtitle}, #{b.businessPrice},#{b.businessDistance},
+            #{b.businessNumber}, #{b.businessStar}, #{b.businessDesc}, #{b.businessCityCode}, #{b.businessCateCode})
+        </foreach>
+    </insert>
+
+    <delete id="Delete">
+        DELETE FROM business
+        <where>
+            <if test="businessId!=null and !''.equals(businessId)">
+                BUSINESS_ID=#{id}
+            </if>
+        </where>
+    </delete>
+
+    <update id="Update">
+        UPDATE business
+        <set>
+            <if test="businessImgName!=null and !''.equals(businessImgName)">
+                BUSINESS_IMG_NAME=#{businessImgName},
+            </if>
+            <if test="businessTitle!=null and !''.equals(businessTitle)">
+                BUSINESS_TITLE=#{businessTitle},
+            </if>
+            <if test="businessSubtitle!=null and !''.equals(businessSubtitle)">
+                BUSINESS_SUBTITLE=#{businessSubtitle},
+            </if>
+            <if test="businessPrice!=null and !''.equals(businessPrice)">
+                BUSINESS_PRICE=#{businessPrice},
+            </if>
+            <if test="businessDistance!=null and !''.equals(businessDistance)">
+                BUSINESS_DISTANCE=#{businessDistance},
+            </if>
+            <if test="businessNumber!=null and !''.equals(businessNumber)">
+                BUSINESS_NUMBER=#{businessNumber},
+            </if>
+            <if test="businessStar!=null and !''.equals(businessStar)">
+                BUSINESS_STAR=#{businessStar},
+            </if>
+            <if test="businessDesc!=null and !''.equals(businessDesc)">
+                BUSINESS_DESC=#{businessDesc},
+            </if>
+            <if test="businessCityCode!=null and !''.equals(businessCityCode)">
+                BUSINESS_CITY_CODE=#{businessCityCode},
+            </if>
+            <if test="businessCateCode!=null and !''.equals(businessCateCode)">
+                BUSINESS_CATE_CODE=#{businessCateCode},
+            </if>
+        </set>
+        <where>
+            BUSINESS_ID=#{businessId}
+        </where>
+    </update>
+
+    <update id="UpdateNumber">
+        UPDATE business b,(SELECT ORDER_B_ID,count(*) cout FROM orders GROUP BY ORDER_B_ID) cc
+        SET b.BUSINESS_NUMBER=cc.cout WHERE b.BUSINESS_ID=cc.ORDER_B_ID
+    </update>
+
+    <update id="newUpdateNumber">
+        UPDATE business b,
+            (SELECT d.BUSINESS_ID,count(*) cout FROM
+                (SELECT * FROM business b,
+                                (SELECT t.TIME_FORMER,o.ORDER_B_ID,o.ORDER_TIME FROM orders o,numtask t WHERE unix_timestamp(o.ORDER_TIME)>unix_timestamp(t.TIME_FORMER)) cc
+                WHERE b.BUSINESS_ID=cc.ORDER_B_ID) AS d
+            GROUP BY d.ORDER_B_ID ) dd
+        SET b.BUSINESS_NUMBER=b.BUSINESS_NUMBER+dd.cout WHERE b.BUSINESS_ID=dd.BUSINESS_ID
+    </update>
+
+
+    <update id="newUpdateStar">
+        UPDATE business bb,(SELECT sum(COMMENT_STAR) s,count(*) cout,dd.* FROM
+            (SELECT cc.COMMENT_O_ID,cc.COMMENT_STAR,l.ORDER_B_ID,l.ORDER_ID FROM orders l,
+                (SELECT o.COMMENT_O_ID,o.COMMENT_STAR,t.TIME_FORMER FROM startask t,`comment` o WHERE unix_timestamp(o.COMMENT_TIME)>unix_timestamp(t.TIME_FORMER)) cc
+             WHERE cc.COMMENT_O_ID=l.ORDER_ID  AND l.ORDER_STATE='${@com.cj.constant.OrderStateConst@EVALUATED}') dd
+            GROUP BY ORDER_B_ID) mm
+        SET bb.BUSINESS_REDUNDANCY_TOTAL_NUMBER=bb.BUSINESS_REDUNDANCY_TOTAL_NUMBER+mm.cout,
+            bb.BUSINESS_REDUNDANCY_TOTAL_SCORE=bb.BUSINESS_REDUNDANCY_TOTAL_SCORE+mm.s,
+            bb.BUSINESS_STAR=bb.BUSINESS_REDUNDANCY_TOTAL_SCORE/bb.BUSINESS_REDUNDANCY_TOTAL_NUMBER
+        WHERE bb.BUSINESS_ID=mm.ORDER_B_ID
+    </update>
+
+
+    <select id="QueryById" resultType="com.cj.entity.Business">
+        SELECT * FROM business WHERE BUSINESS_ID=#{id}
+    </select>
+
+    <select id="QueryAll" resultType="com.cj.entity.Business">
+        SELECT * FROM business
+    </select>
+
+    <select id="QueryByPage" resultType="com.cj.entity.Business">
+        SELECT * FROM business
+        <where>
+            <if test="businessTitle!=null and !''.equals(businessTitle)">
+                (BUSINESS_TITLE LIKE '%' #{businessTitle} '%' OR BUSINESS_SUBTITLE LIKE '%' #{businessTitle} '%')
+            </if>
+        </where>
+    </select>
+
+
+    <resultMap id="bMapping" type="com.cj.entity.Business">
+        <id column="BUSINESS_ID" property="businessId"></id>
+        <result column="BUSINESS_IMG_NAME" property="businessImgName"></result>
+        <result column="BUSINESS_TITLE" property="businessTitle"></result>
+        <result column="BUSINESS_SUBTITLE" property="businessSubtitle"></result>
+        <result column="BUSINESS_PRICE" property="businessPrice"></result>
+        <result column="BUSINESS_DISTANCE" property="businessDistance"></result>
+        <result column="BUSINESS_NUMBER" property="businessNumber"></result>
+        <result column="BUSINESS_STAR" property="businessStar"></result>
+        <result column="BUSINESS_DESC" property="businessDesc"></result>
+        <result column="BUSINESS_CITY_CODE" property="businessCityCode"></result>
+        <result column="BUSINESS_CATE_CODE" property="businessCateCode"></result>
+        <association property="cityDic" javaType="com.cj.entity.Dic">
+            <id column="city_code" property="dicCode"></id>
+            <result column="city_type" property="dicType"></result>
+            <result column="city_name" property="dicName"></result>
+            <result column="city_weight" property="dicWeight"></result>
+        </association>
+        <association property="cateDic" javaType="com.cj.entity.Dic">
+            <id column="cate_code" property="dicCode"></id>
+            <result column="cate_type" property="dicType"></result>
+            <result column="cate_name" property="dicName"></result>
+            <result column="cate_weight" property="dicWeight"></result>
+        </association>
+    </resultMap>
+
+    <select id="QueryLikeByPage" resultMap="bMapping">
+        SELECT b.*,dic_city.DIC_TYPE city_type,dic_city.DIC_NAME city_name,dic_city.DIC_CODE city_code,dic_city.DIC_WEIGHT city_weight,
+        dic_cate.DIC_TYPE cate_type,dic_cate.DIC_NAME cate_name,dic_cate.DIC_CODE cate_code,dic_cate.DIC_WEIGHT cate_weight FROM business b
+        LEFT JOIN dic dic_city ON b.BUSINESS_CITY_CODE=dic_city.DIC_CODE AND dic_city.DIC_TYPE='${@com.cj.constant.DicTypeConst@CITY}'
+        LEFT JOIN dic dic_cate ON b.BUSINESS_CATE_CODE=dic_cate.DIC_CODE AND dic_cate.DIC_TYPE='${@com.cj.constant.DicTypeConst@CATE}'
+        <where>
+            <if test="businessTitle!=null and !''.equals(businessTitle)
+                and businessSubtitle!=null and !''.equals(businessSubtitle)
+                and businessDesc!=null and !''.equals(businessDesc)">
+                (BUSINESS_TITLE LIKE '%' #{businessTitle} '%' OR
+                    BUSINESS_SUBTITLE LIKE '%' #{businessSubtitle} '%' OR
+                    BUSINESS_DESC LIKE '%' #{businessDesc} '%')
+            </if>
+            <if test="businessCityCode!=null and !''.equals(businessCityCode)">
+                AND BUSINESS_CITY_CODE=#{businessCityCode}
+            </if>
+            <if test="businessCateCode!=null and !''.equals(businessCateCode)">
+                AND BUSINESS_CATE_CODE=#{businessCateCode}
+            </if>
+        </where>
+    </select>
+</mapper>

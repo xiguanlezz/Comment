@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cj.dao.ReportDao">
+    <select id="QueryCount" resultType="map">
+        SELECT d.DIC_NAME reportCate,DATE_FORMAT(o.ORDER_TIME,'%H') reportHour,CAST(count(*) AS CHAR) reportCount FROM orders o,business b,dic d
+        WHERE o.ORDER_B_ID=b.BUSINESS_ID AND b.BUSINESS_CATE_CODE=d.DIC_CODE
+        AND DATE_FORMAT(o.ORDER_TIME,'%Y%m%d')=DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 1 DAY),'%Y%m%d')
+        GROUP BY d.DIC_NAME,DATE_FORMAT(o.ORDER_TIME,'%h')
+    </select>
+</mapper>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cj.dao.OrderDao">
+    <insert id="Add">
+        INSERT INTO orders(ORDER_B_ID,ORDER_M_ID,ORDER_NUMBER,ORDER_PRICE,ORDER_STATE,ORDER_TIME)
+        VALUE(#{orderBId},#{orderMId},#{orderNumber},#{orderPrice},#{orderState},#{orderTime})
+    </insert>
+
+    <update id="UpdateState">
+        UPDATE orders
+        <set>
+            ORDER_STATE='${@com.cj.constant.OrderStateConst@EVALUATED}'
+        </set>
+        <where>
+            <if test="orderId!=null and !''.equals(orderId)">
+                ORDER_ID=#{orderId}
+            </if>
+        </where>
+    </update>
+
+    <select id="QueryMIdById" resultType="int">
+        SELECT ORDER_M_ID FROM orders WHERE ORDER_ID=#{orderId}
+    </select>
+
+
+    <resultMap id="ordersMapping" type="com.cj.entity.Orders">
+        <id property="orderId" column="ORDER_ID"></id>
+        <result property="orderBId" column="ORDER_B_ID"></result>
+        <result property="orderMId" column="ORDER_M_ID"></result>
+        <result property="orderNumber" column="ORDER_NUMBER"></result>
+        <result property="orderPrice" column="ORDER_PRICE"></result>
+        <result property="orderState" column="ORDER_STATE"></result>
+        <result property="orderTime" column="ORDER_TIME"></result>
+        <association property="orderBusiness" javaType="com.cj.entity.Business">
+            <id column="bId" property="businessId"></id>
+            <result column="bImg" property="businessImgName"></result>
+            <result column="bTitle" property="businessTitle"></result>
+        </association>
+        <association property="orderMember" javaType="com.cj.entity.Member">
+            <id column="mId" property="memberId"></id>
+            <result column="mPhone" property="memberPhone"></result>
+<!--            <result column="BUSINESS_TITLE" property="businessTitle"></result>-->
+        </association>
+    </resultMap>
+    <select id="QueryByMId" resultMap="ordersMapping">
+        SELECT o.*,b.BUSINESS_ID bId,b.BUSINESS_IMG_NAME bImg,b.BUSINESS_TITLE bTitle,
+            m.MEMBER_ID mId,m.MEMBER_PHONE mPhone FROM orders o
+            LEFT JOIN business b ON o.ORDER_B_ID=b.BUSINESS_ID
+            LEFT JOIN member m ON  o.ORDER_M_ID=m.MEMBER_ID
+        <where>
+            <if test="memberId!=null and !''.equals(memberId)">
+                ORDER_M_ID=#{memberId}
+            </if>
+        </where>
+    </select>
+
+
+    <resultMap id="oMapping" type="com.cj.entity.Orders">
+        <id property="orderId" column="ORDER_ID"></id>
+        <result property="orderBId" column="ORDER_B_ID"></result>
+        <result property="orderMId" column="ORDER_M_ID"></result>
+        <result property="orderNumber" column="ORDER_NUMBER"></result>
+        <result property="orderPrice" column="ORDER_PRICE"></result>
+        <result property="orderState" column="ORDER_STATE"></result>
+        <result property="orderTime" column="ORDER_TIME"></result>
+        <association property="orderMember" javaType="com.cj.entity.Member">
+            <id column="MEMBER_ID" property="memberId"></id>
+            <result column="MEMBER_PHONE" property="memberPhone"></result>
+            <!--            <result column="BUSINESS_TITLE" property="businessTitle"></result>-->
+        </association>
+    </resultMap>
+
+    <select id="QueryAll" resultMap="oMapping">
+        SELECT * FROM orders
+    </select>
+
+    <select id="QueryByPage" resultMap="oMapping">
+        SELECT * FROM orders o,member m WHERE m.MEMBER_ID=o.ORDER_M_ID
+        <if test="keyword!=null and !''.equals(keyword.trim())">
+            AND m.MEMBER_PHONE LIKE '%' #{keyword} '%'
+        </if>
+    </select>
+</mapper>

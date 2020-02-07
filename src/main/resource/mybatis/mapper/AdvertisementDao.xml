@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cj.dao.AdvertisementDao">
+    <insert id="Add" useGeneratedKeys="true" keyProperty="advertisementId">
+        INSERT INTO advertisement(ADVERTISEMENT_NAME,ADVERTISEMENT_IMG_NAME,ADVERTISEMENT_LINK,ADVERTISEMENT_WEIGHT)
+        VALUES(#{advertisementName},#{advertisementImgName},#{advertisementLink},#{advertisementWeight})
+    </insert>
+
+    <insert id="AddBatch">
+        INSERT INTO advertisement VALUES
+        <foreach collection="list" item="ad" separator=",">
+            (NULL,#{ad.advertisementName},#{ad.advertisementImgName},#{ad.advertisementLink},#{ad.advertisementWeight})
+        </foreach>
+    </insert>
+
+    <delete id="Delete">
+        DELETE FROM advertisement WHERE ADVERTISEMENT_ID=#{id}
+    </delete>
+
+    <update id="Update">
+        UPDATE advertisement
+        <set>
+            <if test="advertisementName!=null and !''.equals(advertisementName.trim())">
+                ADVERTISEMENT_NAME=#{advertisementName},
+            </if>
+            <if test="advertisementImgName!=null and !''.equals(advertisementImgName.trim())">
+                ADVERTISEMENT_IMG_NAME=#{advertisementImgName},
+            </if>
+            <if test="advertisementLink!=null and !''.equals(advertisementLink.trim())">
+                ADVERTISEMENT_LINK=#{advertisementLink},
+            </if>
+            <if test="advertisementWeight!=null and !''.equals(advertisementWeight)">
+                ADVERTISEMENT_WEIGHT=#{advertisementWeight},
+            </if>
+        </set>
+        <where>
+            ADVERTISEMENT_ID=#{advertisementId}
+        </where>
+    </update>
+
+    <select id="QueryById" resultType="com.cj.entity.Advertisement">
+        SELECT * FROM advertisement WHERE ADVERTISEMENT_ID=#{id}
+    </select>
+
+    <select id="QueryAll" resultType="com.cj.entity.Advertisement">
+        SELECT * FROM advertisement
+    </select>
+
+    <select id="QueryByPage" resultType="com.cj.entity.Advertisement">
+        SELECT * FROM advertisement
+        <where>
+            <if test="advertisementName!=null and !''.equals(advertisementName.trim())">
+                ADVERTISEMENT_NAME LIKE '%' #{advertisementName} '%'
+            </if>
+        </where>
+    </select>
+
+    <select id="QueryTotalCount" resultType="int">
+        SELECT COUNT(*) FROM advertisement
+    </select>
+</mapper>

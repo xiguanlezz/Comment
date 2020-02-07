@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cj.dao.MemberDao">
+    <select id="QueryByPhone" resultType="com.cj.entity.Member">
+        SELECT * FROM member
+        <where>
+            <if test="memberPhone!=null and !''.equals(memberPhone)">
+                MEMBER_PHONE=#{phone}
+            </if>
+        </where>
+    </select>
+
+    <select id="QueryIdByPhone" resultType="int">
+        SELECT m.MEMBER_ID FROM member m WHERE MEMBER_PHONE=#{phone}
+    </select>
+</mapper>
