@@ -1,7 +1,7 @@
 # Comment
 React+SSM前后端分离的大众点评APP
 
-APP前端、数据库表的设计见个人博客
+APP前端、数据库表的设计见个人博客https://blog.csdn.net/cj1561435010/article/details/104100397
 
 一、前端功能明细
 
